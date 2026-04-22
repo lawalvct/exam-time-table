@@ -15,14 +15,23 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="request()->routeIs('departments.*')">
+                    <x-nav-link :href="route('faculties.index')" :active="request()->routeIs('faculties.*')">
+                        {{ __('Faculties') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
                         {{ __('Departments') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="request()->routeIs('courses.*')">
+                    <x-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">
                         {{ __('Courses') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="request()->routeIs('halls.*')">
+                    <x-nav-link :href="route('levels.index')" :active="request()->routeIs('levels.*')">
+                        {{ __('Levels') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('halls.index')" :active="request()->routeIs('halls.*')">
                         {{ __('Halls') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('invigilators.index')" :active="request()->routeIs('invigilators.*')">
+                        {{ __('Invigilators') }}
                     </x-nav-link>
                     <x-nav-link href="#" :active="request()->routeIs('timeslots.*')">
                         {{ __('Time Slots') }}
@@ -85,14 +94,23 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="request()->routeIs('departments.*')">
+            <x-responsive-nav-link :href="route('faculties.index')" :active="request()->routeIs('faculties.*')">
+                {{ __('Faculties') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
                 {{ __('Departments') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="request()->routeIs('courses.*')">
+            <x-responsive-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">
                 {{ __('Courses') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="request()->routeIs('halls.*')">
+            <x-responsive-nav-link :href="route('levels.index')" :active="request()->routeIs('levels.*')">
+                {{ __('Levels') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('halls.index')" :active="request()->routeIs('halls.*')">
                 {{ __('Halls') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('invigilators.index')" :active="request()->routeIs('invigilators.*')">
+                {{ __('Invigilators') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link href="#" :active="request()->routeIs('timeslots.*')">
                 {{ __('Time Slots') }}
