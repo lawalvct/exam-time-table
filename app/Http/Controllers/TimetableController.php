@@ -35,6 +35,29 @@ class TimetableController extends Controller
         return view('timetables.index', compact('timetables', 'sessions', 'semesters'));
     }
 
+    // Printable View
+    public function print(Request $request)
+    {
+        $query = Timetable::with(['course.department', 'course.level', 'timeSlot', 'hall', 'invigilator']);
+
+        if ($request->filled('academic_session')) {
+            $query->where('academic_session', $request->academic_session);
+        }
+        if ($request->filled('semester')) {
+            $query->where('semester', $request->semester);
+        }
+
+        // Group by Time Slot so each period can be on its own page or clearly separated
+        $timetablesBySlot = $query->orderBy('exam_date', 'asc')
+            ->get()
+            ->groupBy('time_slot_id');
+
+        $sessionLabel = $request->academic_session ?? 'ALL SESSIONS';
+        $semesterLabel = $request->semester ?? 'ALL SEMESTERS';
+
+        return view('timetables.print', compact('timetablesBySlot', 'sessionLabel', 'semesterLabel'));
+    }
+
     // Displays the Auto-Generate Form
     public function generate()
     {
@@ -78,29 +101,48 @@ class TimetableController extends Controller
         $invigilatorIndex = 0;
 
         foreach ($courses as $course) {
+            $remainingStudents = $course->total_students;
             $courseAssigned = false;
 
-            // Find a suitable timeslot and hall
             foreach ($timeSlots as $slot) {
-                foreach ($halls as $hall) {
-                    
-                    // Check if hall capacity is sufficient
-                    if ($hall->capacity >= $course->total_students) {
-                        
-                        // Check if hall is already booked for this specific timeslot
-                        $hallBooked = Timetable::where('time_slot_id', $slot->id)
-                                               ->where('hall_id', $hall->id)
-                                               ->exists();
-                        
-                        // Check if department already has an exam in this timeslot (to avoid clash)
-                        $departmentClash = Timetable::where('time_slot_id', $slot->id)
-                                                    ->whereHas('course', function ($query) use ($course) {
-                                                        $query->where('department_id', $course->department_id)
-                                                              ->where('level_id', $course->level_id);
-                                                    })->exists();
+                // Check if department/level already has an exam in this timeslot (prevent student clashes)
+                $departmentClash = Timetable::where('time_slot_id', $slot->id)
+                    ->whereHas('course', function ($query) use ($course) {
+                        $query->where('department_id', $course->department_id)
+                              ->where('level_id', $course->level_id);
+                    })->exists();
 
-                        if (!$hallBooked && !$departmentClash) {
-                            
+                if ($departmentClash) {
+                    continue; // Try next timeslot
+                }
+
+                // Calculate available capacities for all halls in this timeslot
+                $hallAvailabilities = [];
+                $totalAvailableInSlot = 0;
+
+                foreach ($halls as $hall) {
+                    $usedCapacity = Timetable::where('time_slot_id', $slot->id)
+                        ->where('hall_id', $hall->id)
+                        ->sum('student_count');
+                    
+                    $available = $hall->capacity - $usedCapacity;
+                    if ($available > 0) {
+                        $hallAvailabilities[$hall->id] = $available;
+                        $totalAvailableInSlot += $available;
+                    }
+                }
+
+                // If this timeslot has enough space across all its available halls
+                if ($totalAvailableInSlot >= $remainingStudents) {
+                    
+                    // Allocate students to halls
+                    foreach ($halls as $hall) {
+                        if ($remainingStudents <= 0) break;
+
+                        $available = $hallAvailabilities[$hall->id] ?? 0;
+                        if ($available > 0) {
+                            $allocCount = min($remainingStudents, $available);
+
                             // Assign Invigilator (Round Robin)
                             $invigilatorId = null;
                             if ($invigilators->count() > 0) {
@@ -115,13 +157,19 @@ class TimetableController extends Controller
                                 'time_slot_id' => $slot->id,
                                 'hall_id' => $hall->id,
                                 'invigilator_id' => $invigilatorId,
+                                'matric_range' => null, // Admin will update manually
+                                'student_count' => $allocCount,
                                 'exam_date' => $slot->date
                             ]);
 
-                            $courseAssigned = true;
-                            $scheduled++;
-                            break 2; // Break out of hall and timeslot loops
+                            $remainingStudents -= $allocCount;
                         }
+                    }
+
+                    if ($remainingStudents <= 0) {
+                        $courseAssigned = true;
+                        $scheduled++;
+                        break; // Move to the next course
                     }
                 }
             }
@@ -169,6 +217,8 @@ class TimetableController extends Controller
             'time_slot_id' => 'required|exists:time_slots,id',
             'hall_id' => 'required|exists:halls,id',
             'invigilator_id' => 'nullable|exists:invigilators,id',
+            'matric_range' => 'nullable|string|max:255',
+            'student_count' => 'required|integer|min:1',
         ]);
 
         $timeSlot = TimeSlot::findOrFail($request->time_slot_id);
@@ -180,6 +230,8 @@ class TimetableController extends Controller
             'time_slot_id' => $request->time_slot_id,
             'hall_id' => $request->hall_id,
             'invigilator_id' => $request->invigilator_id,
+            'matric_range' => $request->matric_range,
+            'student_count' => $request->student_count,
             'exam_date' => $timeSlot->date
         ]);
 
@@ -215,6 +267,8 @@ class TimetableController extends Controller
             'time_slot_id' => 'required|exists:time_slots,id',
             'hall_id' => 'required|exists:halls,id',
             'invigilator_id' => 'nullable|exists:invigilators,id',
+            'matric_range' => 'nullable|string|max:255',
+            'student_count' => 'required|integer|min:1',
         ]);
 
         $timeSlot = TimeSlot::findOrFail($request->time_slot_id);
@@ -226,6 +280,8 @@ class TimetableController extends Controller
             'time_slot_id' => $request->time_slot_id,
             'hall_id' => $request->hall_id,
             'invigilator_id' => $request->invigilator_id,
+            'matric_range' => $request->matric_range,
+            'student_count' => $request->student_count,
             'exam_date' => $timeSlot->date
         ]);
 
@@ -237,6 +293,20 @@ class TimetableController extends Controller
     {
         $timetable->delete();
         return redirect()->route('timetables.index')->with('success', 'Timetable entry deleted successfully.');
+    }
+
+    // Quick update for Matriculation Range
+    public function updateMatricRange(Request $request, Timetable $timetable)
+    {
+        $request->validate([
+            'matric_range' => 'nullable|string|max:255',
+        ]);
+
+        $timetable->update([
+            'matric_range' => $request->matric_range
+        ]);
+
+        return back()->with('success', 'Matriculation range updated successfully.');
     }
 
     // Clear all timetables

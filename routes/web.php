@@ -35,6 +35,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('timetables/destroy_all', [TimetableController::class, 'destroyAll'])->name('timetables.destroy_all');
     Route::get('timetables/generate', [TimetableController::class, 'generate'])->name('timetables.generate');
     Route::post('timetables/generate', [TimetableController::class, 'storeGenerate'])->name('timetables.store_generate');
+    Route::get('timetables/print', [TimetableController::class, 'print'])->name('timetables.print');
+    Route::patch('timetables/{timetable}/matric-range', [TimetableController::class, 'updateMatricRange'])->name('timetables.update_matric_range');
     Route::resource('timetables', TimetableController::class);
 });
 

@@ -15,6 +15,10 @@
                 <a href="{{ route('timetables.create') }}" class="px-4 py-2 bg-white hover:bg-gray-50 text-[#008751] border border-[#008751] rounded-md text-sm font-medium transition shadow-sm">
                     Manual Add
                 </a>
+                <a href="{{ route('timetables.print', request()->query()) }}" target="_blank" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition shadow-sm flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print Report
+                </a>
                 <a href="{{ route('timetables.generate') }}" class="px-4 py-2 bg-[#008751] hover:bg-green-700 text-white rounded-md text-sm font-medium transition shadow-sm flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     Auto Generate
@@ -109,7 +113,8 @@
                                         <span class="text-gray-500 text-xs">{{ $timetable->course->department->code }} | {{ $timetable->course->level->name }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $timetable->course->total_students }}
+                                        {{ $timetable->student_count }}<br>
+                                        <span class="text-xs text-blue-600">{{ $timetable->matric_range ?? 'No Range Set' }}</span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {{ $timetable->hall->name }}<br>
@@ -120,6 +125,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end items-center gap-3">
+                                            <button x-data="" x-on:click.prevent="$dispatch('open-modal', 'matric-modal-{{ $timetable->id }}')" class="text-blue-600 hover:text-blue-900">Set Range</button>
                                             <a href="{{ route('timetables.edit', $timetable) }}" class="text-[#008751] hover:text-green-900">Edit</a>
                                             <form action="{{ route('timetables.destroy', $timetable) }}" method="POST" class="m-0 p-0 inline-flex" onsubmit="return confirm('Are you sure you want to delete this specific timetable entry?');">
                                                 @csrf
@@ -127,6 +133,37 @@
                                                 <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                                             </form>
                                         </div>
+
+                                        <!-- Matric Range Modal -->
+                                        <x-modal name="matric-modal-{{ $timetable->id }}" focusable>
+                                            <form method="post" action="{{ route('timetables.update_matric_range', $timetable) }}" class="p-6 text-left">
+                                                @csrf
+                                                @method('patch')
+
+                                                <h2 class="text-lg font-medium text-gray-900">
+                                                    {{ __('Set Matriculation Range') }}
+                                                </h2>
+
+                                                <p class="mt-1 text-sm text-gray-600">
+                                                    Course: <strong>{{ $timetable->course->code }}</strong> | Hall: <strong>{{ $timetable->hall->name }}</strong> | Students: <strong>{{ $timetable->student_count }}</strong>
+                                                </p>
+
+                                                <div class="mt-6">
+                                                    <x-input-label for="matric_range_{{ $timetable->id }}" value="{{ __('Matriculation Numbers Range') }}" />
+                                                    <x-text-input id="matric_range_{{ $timetable->id }}" name="matric_range" type="text" class="mt-1 block w-full" :value="$timetable->matric_range" placeholder="e.g. 24-01-06-0001 to 24-01-06-0060" />
+                                                </div>
+
+                                                <div class="mt-6 flex justify-end">
+                                                    <x-secondary-button x-on:click="$dispatch('close')">
+                                                        {{ __('Cancel') }}
+                                                    </x-secondary-button>
+
+                                                    <x-primary-button class="ms-3 bg-[#008751] hover:bg-green-700">
+                                                        {{ __('Save Range') }}
+                                                    </x-primary-button>
+                                                </div>
+                                            </form>
+                                        </x-modal>
                                     </td>
                                 </tr>
                             @empty

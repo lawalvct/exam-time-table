@@ -97,6 +97,20 @@
                             </div>
                         </div>
 
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="matric_range" class="block text-sm font-medium text-gray-700">Matriculation Numbers Range</label>
+                                <input type="text" name="matric_range" id="matric_range" value="{{ old('matric_range', $timetable->matric_range) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#008751] focus:ring focus:ring-[#008751] focus:ring-opacity-50" placeholder="e.g. 24-01-06-0001 to 24-01-06-0060">
+                                @error('matric_range') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label for="student_count" class="block text-sm font-medium text-gray-700">Total Students in this Hall <span class="text-red-500">*</span></label>
+                                <input type="number" name="student_count" id="student_count" value="{{ old('student_count', $timetable->student_count) }}" min="1" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#008751] focus:ring focus:ring-[#008751] focus:ring-opacity-50">
+                                @error('student_count') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
                         <div class="flex items-center justify-end">
                             <a href="{{ route('timetables.index') }}" class="text-gray-600 hover:text-gray-900 mr-4">Cancel</a>
                             <button type="submit" class="px-4 py-2 bg-[#008751] hover:bg-green-700 text-white rounded-md font-medium transition shadow-sm">

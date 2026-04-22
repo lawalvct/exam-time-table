@@ -13,6 +13,8 @@ class Timetable extends Model
         'time_slot_id',
         'hall_id',
         'invigilator_id',
+        'matric_range',
+        'student_count',
         'exam_date'
     ];
 
