@@ -9,6 +9,10 @@ use App\Http\Controllers\HallController;
 use App\Http\Controllers\InvigilatorController;
 use App\Http\Controllers\TimeSlotController;
 use App\Http\Controllers\TimetableController;
+use App\Models\Course;
+use App\Models\Department;
+use App\Models\Hall;
+use App\Models\Timetable;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,7 +20,24 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $stats = [
+        'departments' => Department::count(),
+        'courses' => Course::count(),
+        'active_courses' => Course::where('is_active', true)->count(),
+        'students' => Course::sum('total_students'),
+        'halls' => Hall::count(),
+        'total_capacity' => Hall::sum('capacity'),
+        'scheduled_exams' => Timetable::count(),
+    ];
+
+    $recentTimetables = Timetable::query()
+        ->with(['course.department', 'hall', 'timeSlot'])
+        ->orderByDesc('exam_date')
+        ->orderByDesc('id')
+        ->limit(5)
+        ->get();
+
+    return view('dashboard', compact('stats', 'recentTimetables'));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -31,7 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('halls', HallController::class);
     Route::resource('invigilators', InvigilatorController::class);
     Route::resource('timeslots', TimeSlotController::class);
-    
+
     Route::delete('timetables/destroy_all', [TimetableController::class, 'destroyAll'])->name('timetables.destroy_all');
     Route::get('timetables/generate', [TimetableController::class, 'generate'])->name('timetables.generate');
     Route::post('timetables/generate', [TimetableController::class, 'storeGenerate'])->name('timetables.store_generate');
