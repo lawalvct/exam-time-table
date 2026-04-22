@@ -7,6 +7,8 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\HallController;
 use App\Http\Controllers\InvigilatorController;
+use App\Http\Controllers\TimeSlotController;
+use App\Http\Controllers\TimetableController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -28,6 +30,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('courses', CourseController::class);
     Route::resource('halls', HallController::class);
     Route::resource('invigilators', InvigilatorController::class);
+    Route::resource('timeslots', TimeSlotController::class);
+    
+    Route::delete('timetables/destroy_all', [TimetableController::class, 'destroyAll'])->name('timetables.destroy_all');
+    Route::get('timetables/generate', [TimetableController::class, 'generate'])->name('timetables.generate');
+    Route::post('timetables/generate', [TimetableController::class, 'storeGenerate'])->name('timetables.store_generate');
+    Route::resource('timetables', TimetableController::class);
 });
 
 require __DIR__.'/auth.php';

@@ -33,10 +33,10 @@
                     <x-nav-link :href="route('invigilators.index')" :active="request()->routeIs('invigilators.*')">
                         {{ __('Invigilators') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="request()->routeIs('timeslots.*')">
+                    <x-nav-link :href="route('timeslots.index')" :active="request()->routeIs('timeslots.*')">
                         {{ __('Time Slots') }}
                     </x-nav-link>
-                    <x-nav-link href="#" :active="request()->routeIs('timetables.*')">
+                    <x-nav-link :href="route('timetables.index')" :active="request()->routeIs('timetables.*')">
                         {{ __('Timetables') }}
                     </x-nav-link>
                 </div>
@@ -112,7 +112,10 @@
             <x-responsive-nav-link :href="route('invigilators.index')" :active="request()->routeIs('invigilators.*')">
                 {{ __('Invigilators') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#" :active="request()->routeIs('timeslots.*')">
+            <x-responsive-nav-link :href="route('timeslots.index')" :active="request()->routeIs('timeslots.*')">
+                {{ __('Time Slots') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="#" :active="request()->routeIs('timetables.*')">
                 {{ __('Time Slots') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link href="#" :active="request()->routeIs('timetables.*')">
